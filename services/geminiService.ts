@@ -2,21 +2,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { fileToBase64 } from "../utils/fileUtils";
 
-const API_KEY = process.env.API_KEY;
-if (!API_KEY) {
-    throw new Error("API_KEY is not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
-
-const model = ai.models;
-
 export const analyzeRunningImage = async (
   image: File,
   age: number,
   weeklyGoal: number
 ): Promise<string> => {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     const base64Image = await fileToBase64(image);
     const imagePart = {
       inlineData: {
@@ -51,12 +44,17 @@ export const analyzeRunningImage = async (
       결과는 친절하고 동기부여가 되는 어조로 작성해주세요.
     `;
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: { parts: [{ text: prompt }, imagePart] },
     });
     
-    return response.text;
+    const text = response.text;
+    if (text === undefined) {
+      throw new Error("API로부터 유효한 텍스트 응답을 받지 못했습니다.");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error analyzing image with Gemini:", error);
     throw new Error("Gemini API 호출에 실패했습니다.");
