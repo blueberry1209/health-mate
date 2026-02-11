@@ -46,7 +46,7 @@ export const analyzeRunningImage = async (
     
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: { parts: [{ text: prompt }, imagePart] },
+      contents: { parts: [imagePart, { text: prompt }] },
     });
     
     const text = response.text;
